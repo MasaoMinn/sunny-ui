@@ -1,0 +1,30 @@
+{
+  "routes": {
+    "core": {
+      "outputDir": "src/components/sunny",
+      "dependencies": []
+    },
+    "matter": {
+      "outputDir": "src/components/sunny/matter",
+      "dependencies": [
+        "matter-js@^0.20.0"
+      ]
+    }
+  },
+  "components": [
+    {
+      "route": "core",
+      "name": "button",
+      "source": "registry/core/button.tsx",
+      "target": "button.tsx",
+      "dependencies": []
+    },
+    {
+      "route": "matter",
+      "name": "gravity-box",
+      "source": "registry/matter/gravity-box.tsx",
+      "target": "gravity-box.tsx",
+      "dependencies": []
+    }
+  ]
+}
