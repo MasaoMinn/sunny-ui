@@ -14,6 +14,7 @@ import {
 
 const MAX_SPEED = 6;
 const MIN_RADIUS = 12;
+const DEFAULT_WIDTH = 480;
 const DEFAULT_HEIGHT = 240;
 const DEFAULT_TEXT_COLOR = "#ffffff";
 const DEFAULT_SCALE = 1;
@@ -75,8 +76,8 @@ export type BubbleBoxProps = Omit<
   content: Array<string | BubbleContentItem>;
   temperature?: number;
   draggable?: boolean;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
 };
 
 export function BubbleBox({
@@ -98,6 +99,10 @@ export function BubbleBox({
   );
   const normalizedTemperature = clamp(temperature, 0, 100);
   const targetSpeed = (normalizedTemperature / 100) * MAX_SPEED;
+  const explicitPixelWidth = toPositiveNumber(width);
+  const explicitPixelHeight = toPositiveNumber(height);
+  const cssWidth = toCssSize(width, "100%");
+  const cssHeight = toCssSize(height, "100%");
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -105,18 +110,32 @@ export function BubbleBox({
       return;
     }
 
-    if (typeof width === "number" && typeof height === "number") {
-      return;
-    }
-
     const updateSize = () => {
-      setAutoSize({
-        width: Math.max(1, Math.floor(wrapper.clientWidth)),
-        height: Math.max(1, Math.floor(wrapper.clientHeight)),
+      const rect = wrapper.getBoundingClientRect();
+      const measuredWidth = Math.max(1, Math.floor(rect.width || wrapper.clientWidth));
+      const measuredHeight = Math.max(
+        1,
+        Math.floor(rect.height || wrapper.clientHeight),
+      );
+
+      const nextWidth = explicitPixelWidth ?? measuredWidth ?? DEFAULT_WIDTH;
+      const nextHeight =
+        explicitPixelHeight ??
+        (measuredHeight > 1 ? measuredHeight : DEFAULT_HEIGHT);
+
+      setAutoSize((prev) => {
+        if (prev.width === nextWidth && prev.height === nextHeight) {
+          return prev;
+        }
+        return { width: nextWidth, height: nextHeight };
       });
     };
 
     updateSize();
+
+    if (explicitPixelWidth && explicitPixelHeight) {
+      return;
+    }
 
     if (typeof ResizeObserver === "undefined") {
       return;
@@ -126,12 +145,15 @@ export function BubbleBox({
     observer.observe(wrapper);
 
     return () => observer.disconnect();
-  }, [width, height]);
+  }, [explicitPixelHeight, explicitPixelWidth]);
 
-  const resolvedWidth = Math.max(1, Math.floor(width ?? autoSize.width ?? 0));
+  const resolvedWidth = Math.max(
+    1,
+    Math.floor(explicitPixelWidth ?? autoSize.width ?? DEFAULT_WIDTH),
+  );
   const resolvedHeight = Math.max(
     1,
-    Math.floor(height ?? autoSize.height ?? DEFAULT_HEIGHT),
+    Math.floor(explicitPixelHeight ?? autoSize.height ?? DEFAULT_HEIGHT),
   );
 
   useEffect(() => {
@@ -337,9 +359,11 @@ export function BubbleBox({
       ref={wrapperRef}
       {...divProps}
       style={{
-        width: "100%",
-        height: "100%",
-        minHeight: DEFAULT_HEIGHT,
+        width: cssWidth,
+        height: cssHeight,
+        minHeight: height == null ? DEFAULT_HEIGHT : undefined,
+        maxWidth: "100%",
+        boxSizing: "border-box",
         border: "1px solid #e2e8f0",
         borderRadius: 16,
         overflow: "hidden",
@@ -347,7 +371,10 @@ export function BubbleBox({
         ...style,
       }}
     >
-      <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
+      <div
+        ref={mountRef}
+        style={{ width: "100%", height: "100%", boxSizing: "border-box" }}
+      />
     </div>
   );
 }
@@ -687,6 +714,26 @@ function resolveRange(min: number, max: number, fallback: number) {
     return [min, max] as const;
   }
   return [fallback, fallback] as const;
+}
+
+function toPositiveNumber(value: number | string | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return undefined;
+  }
+  if (value <= 0) {
+    return undefined;
+  }
+  return value;
+}
+
+function toCssSize(value: number | string | undefined, fallback: string) {
+  if (typeof value === "number") {
+    return `${value}px`;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value;
+  }
+  return fallback;
 }
 
 export default BubbleBox;

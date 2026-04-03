@@ -63,7 +63,7 @@ async function runAdd(args) {
 
     if (!component) {
       console.error(`Component "${id}" not found.`);
-      console.error(`Run "sunny list" to view all available components.`);
+      console.error(`Run "sunny-zy list" to view all available components.`);
       process.exit(1);
     }
 
@@ -297,11 +297,11 @@ function printList() {
 }
 
 function printUsage() {
-  console.log("sunny - component installer");
+  console.log("sunny-zy - component installer");
   console.log("");
   console.log("Usage:");
-  console.log("  sunny list");
-  console.log("  sunny add <component-name>");
-  console.log("  sunny add matter/<component-name>");
-  console.log("  sunny add <component> [more...] [-y|--yes]");
+  console.log("  sunny-zy list");
+  console.log("  sunny-zy add <component-name>");
+  console.log("  sunny-zy add matter/<component-name>");
+  console.log("  sunny-zy add <component> [more...] [-y|--yes]");
 }

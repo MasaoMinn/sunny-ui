@@ -1,13 +1,16 @@
 {
-  "name": "sunny-ui",
-  "version": "0.1.0",
+  "name": "sunny-zy",
+  "version": "0.1.2",
   "type": "module",
   "bin": {
-    "sunny": "./bin/sunny.mjs"
+    "sunny": "bin/sunny.mjs",
+    "sunny-ui": "bin/sunny.mjs",
+    "sunny-zy": "bin/sunny.mjs"
   },
   "files": [
     "bin",
-    "registry",
+    "registry/registry.json",
+    "registry/matter/BubbleBox.tsx",
     "README.md"
   ],
   "engines": {
