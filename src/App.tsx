@@ -28,8 +28,28 @@ function App() {
         >
           Count is {count}
         </button>
-        <div>
-          <BubbleBox />
+        <div style={{ width: "min(720px, 92vw)", height: 320 }}>
+          <BubbleBox
+            content={[
+              {
+                label: "React",
+                textColor: "#61dafb",
+                backgroundColor: "#202020",
+              },
+              {
+                label: "Vite",
+                textColor: "#ffffff",
+                backgroundColor: "#6366f1",
+              },
+              {
+                label: "Matter",
+                textColor: "#0f172a",
+                backgroundColor: "#fde68a",
+              },
+            ]}
+            temperature={50}
+            draggable
+          />
         </div>
       </section>
 
