@@ -28,7 +28,7 @@ function App() {
         >
           Count is {count}
         </button>
-        <div style={{ marginTop: 24 }}>
+        <div>
           <BubbleBox />
         </div>
       </section>

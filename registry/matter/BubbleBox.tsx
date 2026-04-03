@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type HTMLAttributes,
-} from "react";
+import { useEffect, useRef, type HTMLAttributes } from "react";
 import { Bodies, Engine, Render, Runner, World } from "matter-js";
 
 export type BubbleBoxProps = HTMLAttributes<HTMLDivElement> & {
@@ -12,47 +7,15 @@ export type BubbleBoxProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export function BubbleBox({
-  width,
-  height,
+  width = 480,
+  height = 240,
   style,
   ...divProps
 }: BubbleBoxProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
-  const [autoSize, setAutoSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    if (typeof width === "number" || typeof height === "number") {
-      return;
-    }
-
-    const wrapper = wrapperRef.current;
-    if (!wrapper) {
-      return;
-    }
-
-    const syncSize = () => {
-      setAutoSize({
-        width: Math.max(1, Math.floor(wrapper.clientWidth)),
-        height: Math.max(1, Math.floor(wrapper.clientHeight)),
-      });
-    };
-
-    syncSize();
-    const observer = new ResizeObserver(syncSize);
-    observer.observe(wrapper);
-
-    return () => observer.disconnect();
-  }, [width, height]);
-
-  const resolvedWidth = width ?? autoSize.width;
-  const resolvedHeight = height ?? autoSize.height;
 
   useEffect(() => {
     if (!mountRef.current) {
-      return;
-    }
-    if (!resolvedWidth || !resolvedHeight) {
       return;
     }
 
@@ -63,24 +26,18 @@ export function BubbleBox({
       element: mountRef.current,
       engine,
       options: {
-        width: resolvedWidth,
-        height: resolvedHeight,
+        width,
+        height,
         wireframes: false,
         background: "transparent",
       },
     });
 
-    const floor = Bodies.rectangle(
-      resolvedWidth / 2,
-      resolvedHeight + 20,
-      resolvedWidth,
-      40,
-      {
+    const floor = Bodies.rectangle(width / 2, height + 20, width, 40, {
       isStatic: true,
       render: { fillStyle: "#94a3b8" },
-      },
-    );
-    const box = Bodies.rectangle(resolvedWidth / 2, 30, 64, 64, {
+    });
+    const box = Bodies.rectangle(width / 2, 30, 64, 64, {
       restitution: 0.8,
       render: { fillStyle: "#f97316" },
     });
@@ -99,16 +56,13 @@ export function BubbleBox({
       render.canvas.remove();
       render.textures = {};
     };
-  }, [resolvedWidth, resolvedHeight]);
+  }, [width, height]);
 
   return (
     <div
-      ref={wrapperRef}
       {...divProps}
       style={{
-        width: "100%",
-        height: "100%",
-        minHeight: 240,
+        width: "fit-content",
         border: "1px solid #e2e8f0",
         borderRadius: 16,
         overflow: "hidden",
@@ -116,7 +70,7 @@ export function BubbleBox({
         ...style,
       }}
     >
-      <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={mountRef} />
     </div>
   );
 }
