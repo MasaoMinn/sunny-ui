@@ -15,7 +15,7 @@ import {
 const MAX_SPEED = 6;
 const MIN_RADIUS = 12;
 const DEFAULT_WIDTH = 480;
-const DEFAULT_HEIGHT = 240;
+const DEFAULT_HEIGHT = 320;
 const DEFAULT_TEXT_COLOR = "#ffffff";
 const DEFAULT_SCALE = 1;
 const STAR_INNER_RATIO = 0.5;
@@ -35,9 +35,7 @@ export type BubbleContentItem = {
   label?: string;
   lable?: string;
   textColor?: string;
-  "text-color"?: string;
   backgroundColor?: string;
-  "background-color"?: string;
   shape?: string;
   rotate?: number;
   scale?: number;
@@ -76,6 +74,7 @@ export type BubbleBoxProps = Omit<
   content: Array<string | BubbleContentItem>;
   temperature?: number;
   draggable?: boolean;
+  fill?: boolean;
   width?: number | string;
   height?: number | string;
 };
@@ -84,6 +83,7 @@ export function BubbleBox({
   content,
   temperature = 60,
   draggable = false,
+  fill = false,
   width,
   height,
   style,
@@ -99,10 +99,16 @@ export function BubbleBox({
   );
   const normalizedTemperature = clamp(temperature, 0, 100);
   const targetSpeed = (normalizedTemperature / 100) * MAX_SPEED;
+  const hasExplicitWidth = hasSizeValue(width);
+  const hasExplicitHeight = hasSizeValue(height);
   const explicitPixelWidth = toPositiveNumber(width);
   const explicitPixelHeight = toPositiveNumber(height);
-  const cssWidth = toCssSize(width, "100%");
-  const cssHeight = toCssSize(height, "100%");
+  const cssWidth = hasExplicitWidth ? toCssSize(width, "100%") : "100%";
+  const cssHeight = hasExplicitHeight
+    ? toCssSize(height, `${DEFAULT_HEIGHT}px`)
+    : fill
+      ? "100%"
+      : `${DEFAULT_HEIGHT}px`;
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -145,7 +151,7 @@ export function BubbleBox({
     observer.observe(wrapper);
 
     return () => observer.disconnect();
-  }, [explicitPixelHeight, explicitPixelWidth]);
+  }, [explicitPixelHeight, explicitPixelWidth, fill]);
 
   const resolvedWidth = Math.max(
     1,
@@ -361,11 +367,9 @@ export function BubbleBox({
       style={{
         width: cssWidth,
         height: cssHeight,
-        minHeight: height == null ? DEFAULT_HEIGHT : undefined,
-        maxWidth: "100%",
+        maxWidth: hasExplicitWidth ? undefined : "100%",
         boxSizing: "border-box",
         border: "1px solid #e2e8f0",
-        borderRadius: 16,
         overflow: "hidden",
         background: "#f8fafc",
         ...style,
@@ -662,10 +666,9 @@ function normalizeBubbleItem(
 
   return {
     label: String(item.label ?? item.lable ?? ""),
-    textColor: item.textColor ?? item["text-color"] ?? DEFAULT_TEXT_COLOR,
+    textColor: item.textColor ?? DEFAULT_TEXT_COLOR,
     backgroundColor:
       item.backgroundColor ??
-      item["background-color"] ??
       BUBBLE_COLORS[index % BUBBLE_COLORS.length],
     shape: normalizeShape(item.shape),
     rotate: clamp(item.rotate ?? 0, 0, 10),
@@ -734,6 +737,16 @@ function toCssSize(value: number | string | undefined, fallback: string) {
     return value;
   }
   return fallback;
+}
+
+function hasSizeValue(value: number | string | undefined) {
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+  return false;
 }
 
 export default BubbleBox;

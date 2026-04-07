@@ -7,6 +7,44 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [content,] = useState([
+    {
+      label: "React",
+      textColor: "#61dafb",
+      backgroundColor: "#202020",
+      shape: "circle",
+      rotate: 2,
+      scale: 1,
+      textRotate: false,
+    },
+    {
+      label: "Vite",
+      textColor: "#ffffff",
+      backgroundColor: "#6366f1",
+      shape: "triangle",
+      rotate: 4,
+      scale: 1.05,
+      textRotate: true,
+    },
+    {
+      label: "Matter",
+      textColor: "#0f172a",
+      backgroundColor: "#fde68a",
+      shape: "starshape",
+      rotate: 6,
+      scale: 1.15,
+      textRotate: true,
+    },
+    {
+      label: "Sunny",
+      textColor: "#ffffff",
+      backgroundColor: "#0f766e",
+      shape: "rectangle",
+      rotate: 3,
+      scale: 0.95,
+      textRotate: false,
+    },
+  ])
 
   return (
     <>
@@ -28,137 +66,24 @@ function App() {
         >
           Count is {count}
         </button>
-        <div style={{ width: "min(720px, 92vw)", height: 320 }}>
+        <div
+          style={{
+            width: "min(720px, 92vw)",
+            height: 360,
+            border: "2px solid #fca5a5",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
           <BubbleBox
-            content={[
-              {
-                label: "React",
-                textColor: "#61dafb",
-                backgroundColor: "#202020",
-                shape: "circle",
-                rotate: 2,
-                scale: 1,
-                textRotate: false,
-              },
-              {
-                label: "Vite",
-                textColor: "#ffffff",
-                backgroundColor: "#6366f1",
-                shape: "triangle",
-                rotate: 4,
-                scale: 1.05,
-                textRotate: true,
-              },
-              {
-                label: "Matter",
-                textColor: "#0f172a",
-                backgroundColor: "#fde68a",
-                shape: "starshape",
-                rotate: 6,
-                scale: 1.15,
-                textRotate: true,
-              },
-              {
-                label: "Sunny",
-                textColor: "#ffffff",
-                backgroundColor: "#0f766e",
-                shape: "rectangle",
-                rotate: 3,
-                scale: 0.95,
-                textRotate: false,
-              },
-            ]}
+            content={content}
             temperature={50}
             draggable
+            fill
           />
         </div>
+
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
     </>
   )
 }
