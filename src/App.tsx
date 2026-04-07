@@ -44,6 +44,31 @@ function App() {
       scale: 0.95,
       textRotate: false,
     },
+    {
+      label: "Hex",
+      textColor: "#ffffff",
+      backgroundColor: "#7c3aed",
+      shape: "hexagon",
+      rotate: 5,
+      scale: 1.05,
+      textRotate: true,
+    },
+    {
+      label: "Convex",
+      textColor: "#111827",
+      backgroundColor: "#93c5fd",
+      vertices: [
+        { x: -1.1, y: -0.2 },
+        { x: -0.6, y: -0.95 },
+        { x: 0.7, y: -0.8 },
+        { x: 1.05, y: 0.05 },
+        { x: 0.55, y: 0.95 },
+        { x: -0.75, y: 0.45 },
+      ],
+      rotate: 4,
+      scale: 1.05,
+      textRotate: true,
+    },
   ])
 
   return (

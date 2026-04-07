@@ -29,7 +29,21 @@ const BUBBLE_COLORS = [
   "#a78bfa",
 ];
 
-type BubbleShape = "circle" | "triangle" | "rectangle" | "starshape";
+type Vertex2D = {
+  x: number;
+  y: number;
+};
+
+type BubbleShapeBuiltIn =
+  | "circle"
+  | "triangle"
+  | "rectangle"
+  | "trapezoid"
+  | "pentagon"
+  | "hexagon"
+  | "octagon"
+  | "polygon"
+  | "starshape";
 
 export type BubbleContentItem = {
   label?: string;
@@ -37,6 +51,9 @@ export type BubbleContentItem = {
   textColor?: string;
   backgroundColor?: string;
   shape?: string;
+  polygonSides?: number;
+  trapezoidSlope?: number;
+  vertices?: Vertex2D[];
   rotate?: number;
   scale?: number;
   textRotate?: boolean;
@@ -46,7 +63,10 @@ type NormalizedBubble = {
   label: string;
   textColor: string;
   backgroundColor: string;
-  shape: BubbleShape;
+  shape: BubbleShapeBuiltIn;
+  polygonSides: number;
+  trapezoidSlope: number;
+  vertices: Vertex2D[] | null;
   rotate: number;
   scale: number;
   textRotate: boolean;
@@ -389,6 +409,7 @@ function createBubbleGeometry(
   baseRadius: number,
 ): BubbleGeometry {
   const sizeRadius = Math.max(MIN_RADIUS * 0.45, baseRadius * item.scale);
+  const referenceArea = Math.PI * sizeRadius * sizeRadius;
   const bodyOptions = {
     restitution: 1,
     friction: 0,
@@ -402,25 +423,62 @@ function createBubbleGeometry(
     },
   };
 
+  if (item.vertices && item.vertices.length >= 3) {
+    const scaledVertices = item.vertices.map((vertex) => ({
+      x: vertex.x * sizeRadius,
+      y: vertex.y * sizeRadius,
+    }));
+    const body = Bodies.fromVertices(0, 0, [scaledVertices], bodyOptions, true);
+    body.label = `bubble-convex-${index}`;
+    return measureBubbleGeometry(body, 0.82);
+  }
+
   if (item.shape === "triangle") {
-    const circumRadius = sizeRadius * 1.555;
-    const body = Bodies.polygon(0, 0, 3, circumRadius, bodyOptions);
-    return {
-      body,
-      collisionRadius: circumRadius,
-      textRadius: sizeRadius * 0.78,
-    };
+    const polygonRadius = equivalentPolygonRadius(sizeRadius, 3);
+    const body = Bodies.polygon(0, 0, 3, polygonRadius, bodyOptions);
+    return measureBubbleGeometry(body, 0.8);
+  }
+
+  if (item.shape === "pentagon") {
+    const polygonRadius = equivalentPolygonRadius(sizeRadius, 5);
+    const body = Bodies.polygon(0, 0, 5, polygonRadius, bodyOptions);
+    return measureBubbleGeometry(body, 0.85);
+  }
+
+  if (item.shape === "hexagon") {
+    const polygonRadius = equivalentPolygonRadius(sizeRadius, 6);
+    const body = Bodies.polygon(0, 0, 6, polygonRadius, bodyOptions);
+    return measureBubbleGeometry(body, 0.86);
+  }
+
+  if (item.shape === "octagon") {
+    const polygonRadius = equivalentPolygonRadius(sizeRadius, 8);
+    const body = Bodies.polygon(0, 0, 8, polygonRadius, bodyOptions);
+    return measureBubbleGeometry(body, 0.88);
+  }
+
+  if (item.shape === "polygon") {
+    const sides = clampInt(item.polygonSides, 3, 12);
+    const polygonRadius = equivalentPolygonRadius(sizeRadius, sides);
+    const body = Bodies.polygon(0, 0, sides, polygonRadius, bodyOptions);
+    return measureBubbleGeometry(body, 0.86);
   }
 
   if (item.shape === "rectangle") {
-    const halfWidth = sizeRadius * 0.97;
-    const halfHeight = sizeRadius * 0.81;
-    const body = Bodies.rectangle(0, 0, halfWidth * 2, halfHeight * 2, bodyOptions);
-    return {
-      body,
-      collisionRadius: Math.hypot(halfWidth, halfHeight),
-      textRadius: Math.min(halfWidth, halfHeight),
-    };
+    const aspect = 1.22;
+    const rectWidth = Math.sqrt(referenceArea * aspect);
+    const rectHeight = referenceArea / rectWidth;
+    const body = Bodies.rectangle(0, 0, rectWidth, rectHeight, bodyOptions);
+    return measureBubbleGeometry(body, 0.85);
+  }
+
+  if (item.shape === "trapezoid") {
+    const slope = clamp(item.trapezoidSlope, 0.1, 0.45);
+    const aspect = 1.18;
+    const width = Math.sqrt((referenceArea * aspect) / (1 - slope));
+    const height = width / aspect;
+    const body = Bodies.trapezoid(0, 0, width, height, slope, bodyOptions);
+    return measureBubbleGeometry(body, 0.8);
   }
 
   if (item.shape === "starshape") {
@@ -429,19 +487,11 @@ function createBubbleGeometry(
     const vertices = createStarVertices(0, 0, outerRadius, innerRadius, 5);
     const body = Bodies.fromVertices(0, 0, [vertices], bodyOptions, true);
     body.label = `bubble-star-${index}`;
-    return {
-      body,
-      collisionRadius: outerRadius,
-      textRadius: innerRadius * 0.95,
-    };
+    return measureBubbleGeometry(body, 0.68);
   }
 
   const body = Bodies.circle(0, 0, sizeRadius, bodyOptions);
-  return {
-    body,
-    collisionRadius: sizeRadius,
-    textRadius: sizeRadius,
-  };
+  return measureBubbleGeometry(body, 0.9);
 }
 
 function setBodySpeed(body: MatterBody, speed: number) {
@@ -619,6 +669,28 @@ function createStarVertices(
   return vertices;
 }
 
+function measureBubbleGeometry(body: MatterBody, textRadiusScale: number): BubbleGeometry {
+  const halfWidth = (body.bounds.max.x - body.bounds.min.x) / 2;
+  const halfHeight = (body.bounds.max.y - body.bounds.min.y) / 2;
+  const collisionRadius = Math.hypot(halfWidth, halfHeight);
+  const textRadius = Math.max(
+    MIN_RADIUS * 0.5,
+    Math.min(halfWidth, halfHeight) * textRadiusScale,
+  );
+
+  return {
+    body,
+    collisionRadius,
+    textRadius,
+  };
+}
+
+function equivalentPolygonRadius(referenceRadius: number, sides: number) {
+  const n = Math.max(3, sides);
+  const denominator = n * Math.sin((Math.PI * 2) / n);
+  return referenceRadius * Math.sqrt((Math.PI * 2) / denominator);
+}
+
 function getFittedFontSize(
   context: CanvasRenderingContext2D,
   text: string,
@@ -648,6 +720,94 @@ function getFittedFontSize(
   return best;
 }
 
+function normalizeConvexVertices(vertices: Vertex2D[] | undefined): Vertex2D[] | null {
+  if (!vertices || vertices.length < 3) {
+    return null;
+  }
+
+  const numericVertices = vertices
+    .map((vertex) => ({ x: Number(vertex.x), y: Number(vertex.y) }))
+    .filter((vertex) => Number.isFinite(vertex.x) && Number.isFinite(vertex.y));
+
+  const uniqueMap = new Map<string, Vertex2D>();
+  for (const vertex of numericVertices) {
+    uniqueMap.set(`${vertex.x.toFixed(6)}:${vertex.y.toFixed(6)}`, vertex);
+  }
+  const uniqueVertices = Array.from(uniqueMap.values());
+  if (uniqueVertices.length < 3) {
+    return null;
+  }
+
+  const hull = convexHull(uniqueVertices);
+  if (hull.length < 3) {
+    return null;
+  }
+
+  const centroid = hull.reduce(
+    (acc, vertex) => ({ x: acc.x + vertex.x, y: acc.y + vertex.y }),
+    { x: 0, y: 0 },
+  );
+  const centerX = centroid.x / hull.length;
+  const centerY = centroid.y / hull.length;
+
+  const centered = hull.map((vertex) => ({
+    x: vertex.x - centerX,
+    y: vertex.y - centerY,
+  }));
+
+  const maxDistance = centered.reduce(
+    (acc, vertex) => Math.max(acc, Math.hypot(vertex.x, vertex.y)),
+    0,
+  );
+  if (maxDistance <= 0.0001) {
+    return null;
+  }
+
+  return centered.map((vertex) => ({
+    x: vertex.x / maxDistance,
+    y: vertex.y / maxDistance,
+  }));
+}
+
+function convexHull(points: Vertex2D[]): Vertex2D[] {
+  const sorted = [...points].sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
+  if (sorted.length <= 3) {
+    return sorted;
+  }
+
+  const lower: Vertex2D[] = [];
+  for (const point of sorted) {
+    while (
+      lower.length >= 2 &&
+      cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0
+    ) {
+      lower.pop();
+    }
+    lower.push(point);
+  }
+
+  const upper: Vertex2D[] = [];
+  for (let i = sorted.length - 1; i >= 0; i -= 1) {
+    const point = sorted[i];
+    while (
+      upper.length >= 2 &&
+      cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0
+    ) {
+      upper.pop();
+    }
+    upper.push(point);
+  }
+
+  lower.pop();
+  upper.pop();
+
+  return [...lower, ...upper];
+}
+
+function cross(a: Vertex2D, b: Vertex2D, c: Vertex2D) {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
 function normalizeBubbleItem(
   item: string | BubbleContentItem,
   index: number,
@@ -658,11 +818,18 @@ function normalizeBubbleItem(
       textColor: DEFAULT_TEXT_COLOR,
       backgroundColor: BUBBLE_COLORS[index % BUBBLE_COLORS.length],
       shape: "circle",
+      polygonSides: 6,
+      trapezoidSlope: 0.25,
+      vertices: null,
       rotate: 0,
       scale: DEFAULT_SCALE,
       textRotate: false,
     };
   }
+
+  const shape = normalizeShape(item.shape);
+  const polygonSides = clampInt(item.polygonSides ?? 6, 3, 12);
+  const normalizedVertices = normalizeConvexVertices(item.vertices);
 
   return {
     label: String(item.label ?? item.lable ?? ""),
@@ -670,17 +837,35 @@ function normalizeBubbleItem(
     backgroundColor:
       item.backgroundColor ??
       BUBBLE_COLORS[index % BUBBLE_COLORS.length],
-    shape: normalizeShape(item.shape),
+    shape,
+    polygonSides,
+    trapezoidSlope: clamp(item.trapezoidSlope ?? 0.25, 0.1, 0.45),
+    vertices: normalizedVertices,
     rotate: clamp(item.rotate ?? 0, 0, 10),
     scale: clamp(item.scale ?? DEFAULT_SCALE, 0.4, 3),
     textRotate: Boolean(item.textRotate),
   };
 }
 
-function normalizeShape(input: string | undefined): BubbleShape {
+function normalizeShape(input: string | undefined): BubbleShapeBuiltIn {
   const value = String(input ?? "circle").trim().toLowerCase();
   if (value === "triangle") {
     return "triangle";
+  }
+  if (value === "trapezoid") {
+    return "trapezoid";
+  }
+  if (value === "pentagon") {
+    return "pentagon";
+  }
+  if (value === "hexagon") {
+    return "hexagon";
+  }
+  if (value === "octagon") {
+    return "octagon";
+  }
+  if (value === "polygon") {
+    return "polygon";
   }
   if (value === "rectangle" || value === "rect" || value === "square") {
     return "rectangle";
@@ -710,6 +895,13 @@ function randomBetween(min: number, max: number) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function clampInt(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) {
+    return min;
+  }
+  return Math.round(clamp(value, min, max));
 }
 
 function resolveRange(min: number, max: number, fallback: number) {
