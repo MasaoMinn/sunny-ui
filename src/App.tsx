@@ -2,56 +2,58 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
-import BubbleBox from '../registry/matter/BubbleBox'
+import BubbleBox, { type BubbleProps } from '../registry/matter/BubbleBox'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
-  const [content,] = useState([
+  const [content,] = useState<BubbleProps[]>([
     {
       label: "React",
       textColor: "#61dafb",
       backgroundColor: "#202020",
       shape: "circle",
-      rotate: 2,
-      scale: 1,
-      textRotate: false,
+      initialAngle: 12,
     },
     {
       label: "Vite",
-      textColor: "#ffffff",
       backgroundColor: "#6366f1",
       shape: "triangle",
       rotate: 4,
-      scale: 1.05,
-      textRotate: true,
+      initialAngle: 28,
     },
     {
-      label: "Matter",
-      textColor: "#0f172a",
+      label: "Poly5",
       backgroundColor: "#fde68a",
-      shape: "starshape",
+      shape: "polygon",
+      polygonSides: 5,
       rotate: 6,
-      scale: 1.15,
       textRotate: true,
+      initialAngle: 22,
     },
     {
       label: "Sunny",
-      textColor: "#ffffff",
       backgroundColor: "#0f766e",
       shape: "rectangle",
-      rotate: 3,
+      rotate: 10,
       scale: 0.95,
-      textRotate: false,
+      initialAngle: 10,
     },
     {
-      label: "Hex",
-      textColor: "#ffffff",
+      label: "Ellipse",
       backgroundColor: "#7c3aed",
-      shape: "hexagon",
+      shape: "ellipse",
+      ellipseAxisRatio: 2,
       rotate: 5,
-      scale: 1.05,
-      textRotate: true,
+      initialAngle: 35,
+    },
+    {
+      label: "parallelogram",
+      backgroundColor: "transparent",
+      shape: "parallelogram",
+      skew: 0.55,
+      rotate: 3,
+      initialAngle: 18,
     },
     {
       label: "Convex",
@@ -67,7 +69,6 @@ function App() {
       ],
       rotate: 4,
       scale: 1.05,
-      textRotate: true,
     },
   ])
 
@@ -102,9 +103,12 @@ function App() {
         >
           <BubbleBox
             content={content}
-            temperature={50}
+            temperature={36}
             draggable
             fill
+            style={{
+              backgroundColor: 'transparent'
+            }}
           />
         </div>
 

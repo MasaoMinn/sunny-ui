@@ -8,7 +8,8 @@
 ## 组件用途
 
 当前发布组件：`matter/bubble-box`。  
-该组件基于 `matter-js` 渲染可碰撞、可配置样式/形状/旋转/缩放的泡泡盒子。
+该组件基于 `matter-js` 渲染可碰撞、可配置样式/形状/旋转/缩放的泡泡盒子。  
+支持 `circle/triangle/rectangle/trapezoid/polygon/ellipse/parallelogram`，并提供 `initialAngle`、`ellipseAxisRatio`、`skew` 等参数。
 
 下载后文件路径为：
 
